@@ -147,6 +147,18 @@ nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;po
 .welcome-card p{margin:0 0 14px 0;font-size:13px;color:#667;line-height:1.6;}
 .welcome-card .form-input{font-size:15px;text-align:center;}
 .welcome-card .btn-submit{margin-top:14px;}
+.tut-overlay{display:none;position:fixed;inset:0;z-index:250;pointer-events:none;}
+.tut-overlay.active{display:block;}
+.tut-highlight{position:fixed;border:3px solid #f5b900;border-radius:14px;background:transparent;pointer-events:none;animation:tutPulse 1.4s ease-in-out infinite;box-shadow:0 0 0 4px rgba(245,185,0,0.35);transition:all .3s;display:none;}
+.tut-tip{position:fixed;background:#fff;color:#234;border-radius:14px;padding:14px 16px;width:260px;box-shadow:0 8px 28px rgba(0,0,0,0.22);pointer-events:auto;font-size:13px;line-height:1.7;border:2px solid #f5b900;transition:left .3s, top .3s;}
+.tut-tip.center{left:50% !important;top:50% !important;transform:translate(-50%,-50%);}
+.tut-step-label{display:inline-block;background:#f5b900;color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:8px;margin-bottom:6px;}
+.tut-msg{font-size:13px;}
+.tut-msg b{color:#c47a00;}
+.tut-actions{display:flex;justify-content:space-between;margin-top:10px;align-items:center;gap:8px;}
+.tut-skip{background:none;border:none;color:#a8b3a8;font-size:11px;cursor:pointer;text-decoration:underline;padding:0;}
+.tut-done{background:#f5b900;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;padding:6px 14px;cursor:pointer;}
+@keyframes tutPulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.05);opacity:0.85;}}
 .modal{background:var(--w);border-radius:18px 18px 0 0;padding:20px;width:100%;max-width:640px;max-height:88vh;overflow-y:auto;box-shadow:0 -4px 24px rgba(20,50,10,0.12);}
 .modal-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
 .modal-close{background:none;border:none;cursor:pointer;color:var(--muted);font-size:24px;line-height:1;padding:0 2px;}
@@ -291,7 +303,7 @@ nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;po
           <div class="karte-section-title">&#128221; 栽培メモ</div>
           <div class="karte-memo" id="kv-memo"></div>
         </div>
-        <button class="btn-submit" style="margin-top:4px;" onclick="openKarteEdit()">&#9998; カルテを編集</button>
+        <button class="btn-submit" style="margin-top:4px;" onclick="openKarteEdit()" id="btn-edit-karte">&#9998; カルテを編集</button>
 
         <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
           <div id="plant-delete-confirm" style="display:none;" class="confirm-bar">
@@ -444,6 +456,12 @@ nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;po
   </div>
 </div>
 
+<!-- チュートリアル -->
+<div class="tut-overlay" id="tutorial-overlay">
+  <div class="tut-highlight" id="tut-highlight"></div>
+  <div class="tut-tip" id="tut-tip"></div>
+</div>
+
 <!-- 名前を変更 -->
 <div class="modal-bg" id="modal-rename">
   <div class="modal">
@@ -479,6 +497,7 @@ let nextPlantId = 1;
 
 let diaryEntries = [];
 let nextDiaryId = 1;
+let tutorialStep = 0;
 let editingPlantId = null;
 let currentPage = 'dash';
 let fabOpen = false;
@@ -656,6 +675,7 @@ function addPlant(){
   renderCheckList();
   closeModal('plant');
   ['p-name','p-date','p-place','p-icon','p-tips','p-soil','p-memo'].forEach(id=>document.getElementById(id).value='');
+  advanceTutorial(1);
 }
 
 // ===================== 植物詳細 =====================
@@ -683,6 +703,7 @@ function openDetail(plantId){
   renderDetailDiary(plantId);
   switchDetailTab('karte');
   document.getElementById('detail-page').classList.add('open');
+  advanceTutorial(3);
 }
 
 function switchDetailTab(tab){
@@ -731,6 +752,7 @@ function saveKarte(){
   closeModal('karte');
   renderKarte(p);
   renderCheckList();
+  advanceTutorial(4);
 }
 function closeDetail(){document.getElementById('detail-page').classList.remove('open');}
 function detailBgClick(e){if(e.target===document.getElementById('detail-page'))closeDetail();}
@@ -797,6 +819,7 @@ function addDiaryEntry(){
   renderDash();
   renderCheckList();
   updateStats();
+  advanceTutorial(2);
 }
 
 // ===================== 削除 =====================
@@ -979,7 +1002,7 @@ const STORAGE_KEY = 'oyasainote.v1';
 function saveState(){
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      userName, plants, nextPlantId, diaryEntries, nextDiaryId
+      userName, plants, nextPlantId, diaryEntries, nextDiaryId, tutorialStep
     }));
   }catch(e){}
 }
@@ -993,6 +1016,7 @@ function loadState(){
     nextPlantId = d.nextPlantId || 1;
     diaryEntries = Array.isArray(d.diaryEntries) ? d.diaryEntries : [];
     nextDiaryId = d.nextDiaryId || 1;
+    tutorialStep = (typeof d.tutorialStep === 'number') ? d.tutorialStep : -1;
     return true;
   }catch(e){ return false; }
 }
@@ -1022,10 +1046,15 @@ function submitUserName(){
     document.getElementById('welcome-name').focus();
     return;
   }
+  const wasFirstTime = !userName;
   userName = v;
+  if(wasFirstTime && tutorialStep <= 0) tutorialStep = 1;
   saveState();
   document.getElementById('welcome-modal').classList.remove('open');
   renderGreeting();
+  if(tutorialStep >= 1 && tutorialStep <= TUT_TOTAL){
+    setTimeout(showTutorial, 350);
+  }
 }
 function openRename(){
   document.getElementById('rename-input').value = userName;
@@ -1041,6 +1070,76 @@ function saveUserName(){
   renderGreeting();
 }
 
+// ===================== チュートリアル =====================
+const TUTORIAL_STEPS = {
+  1: {msg:'まずは画面右下の <b>＋</b> ボタンを押して、野菜を1つ追加してみましょう &#127813;', target:()=>document.getElementById('fab-btn')},
+  2: {msg:'いいね！次は日記を1つ書きましょう。もう一度 <b>＋</b> を押して「<b>記録を追加</b>」を選んでね &#128221;', target:()=>document.getElementById('fab-btn')},
+  3: {msg:'最後にカルテを編集してみましょう。「<b>マイ畑</b>」を開いて、追加した野菜をタップしてください &#127807;', target:()=>document.getElementById('tab-plants')},
+  4: {msg:'「<b>&#9998; カルテを編集</b>」ボタンを押して、植物の情報を更新してみましょう &#128221;', target:()=>document.getElementById('btn-edit-karte')},
+  5: {msg:'&#127881; チュートリアル完了！<br>これからあなただけの畑の記録を楽しんでね &#127807;', target:null}
+};
+const TUT_TOTAL = Object.keys(TUTORIAL_STEPS).length;
+
+function tutorialActive(){
+  return tutorialStep >= 1 && tutorialStep <= TUT_TOTAL;
+}
+
+function showTutorial(){
+  const overlay = document.getElementById('tutorial-overlay');
+  if(!tutorialActive()){ overlay.classList.remove('active'); return; }
+  const step = TUTORIAL_STEPS[tutorialStep];
+  overlay.classList.add('active');
+  const hl = document.getElementById('tut-highlight');
+  const tip = document.getElementById('tut-tip');
+  const isLast = tutorialStep === TUT_TOTAL;
+  tip.innerHTML =
+    `<div class="tut-step-label">STEP ${tutorialStep} / ${TUT_TOTAL}</div>`+
+    `<div class="tut-msg">${step.msg}</div>`+
+    `<div class="tut-actions">`+
+      `<button class="tut-skip" onclick="endTutorial()">${isLast?'閉じる':'スキップ'}</button>`+
+      `${isLast?'<button class="tut-done" onclick="endTutorial()">はじめる</button>':''}`+
+    `</div>`;
+  tip.classList.remove('center');
+  tip.style.transform = '';
+  const targetEl = step.target ? step.target() : null;
+  const r = targetEl && targetEl.getBoundingClientRect ? targetEl.getBoundingClientRect() : null;
+  if(r && (r.width>0 || r.height>0)){
+    hl.style.display = 'block';
+    hl.style.left = (r.left - 8) + 'px';
+    hl.style.top = (r.top - 8) + 'px';
+    hl.style.width = (r.width + 16) + 'px';
+    hl.style.height = (r.height + 16) + 'px';
+    const tipW = 260;
+    const tipH = tip.offsetHeight || 140;
+    let top = r.bottom + 14;
+    if(top + tipH > window.innerHeight - 8) top = r.top - tipH - 14;
+    if(top < 8) top = 8;
+    let left = r.left + r.width/2 - tipW/2;
+    left = Math.max(8, Math.min(left, window.innerWidth - tipW - 8));
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  }else{
+    hl.style.display = 'none';
+    tip.classList.add('center');
+  }
+}
+
+function endTutorial(){
+  tutorialStep = -1;
+  saveState();
+  document.getElementById('tutorial-overlay').classList.remove('active');
+}
+
+function advanceTutorial(fromStep){
+  if(tutorialStep !== fromStep) return;
+  tutorialStep = fromStep + 1;
+  saveState();
+  if(tutorialStep > TUT_TOTAL){ endTutorial(); return; }
+  setTimeout(showTutorial, 350);
+}
+
+window.addEventListener('resize', ()=>{ if(tutorialActive()) showTutorial(); });
+
 // ===================== 初期化 =====================
 loadState();
 renderPlants();
@@ -1048,6 +1147,9 @@ renderDash();
 renderFabMenu();
 renderGreeting();
 showWelcomeIfNeeded();
+if(userName && tutorialActive()){
+  setTimeout(showTutorial, 350);
+}
 </script>
 </div>
 </body>
