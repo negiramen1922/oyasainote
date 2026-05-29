@@ -20,8 +20,8 @@
   --r50:#fff0f0;--r400:#e06060;
   --bg:#f7faf2;--w:#fff;--text:#3a4a2a;--muted:#7a9060;--border:rgba(100,140,60,0.18);
 }
-html,body{height:100%;font-family:'Zen Maru Gothic',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
-.app{max-width:640px;margin:0 auto;min-height:100vh;position:relative;background:var(--bg);}
+html,body{height:100%;font-family:'Zen Maru Gothic',sans-serif;background:var(--bg);color:var(--text);font-size:14px;overflow-x:hidden;}
+.app{max-width:640px;margin:0 auto;min-height:100vh;position:relative;background:var(--bg);overflow-x:hidden;}
 
 nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;position:sticky;top:0;z-index:40;box-shadow:0 2px 8px rgba(20,50,8,0.2);}
 .nav-logo{font-size:16px;font-weight:700;color:#fff;padding:12px 8px 12px 0;margin-right:4px;white-space:nowrap;}
@@ -195,7 +195,7 @@ nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;po
 .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .status-desc{font-size:10px;color:var(--muted);display:block;margin-top:1px;}
 /* ホーム追加おすすめバナー */
-.install-banner{display:none;align-items:center;gap:10px;padding:10px 12px;background:#fff8d5;border-bottom:1px solid #e8d68a;color:#5a4a10;font-size:12px;position:sticky;top:0;z-index:50;}
+.install-banner{display:none;align-items:center;gap:10px;padding:10px 12px;background:#fff8d5;border-bottom:1px solid #e8d68a;color:#5a4a10;font-size:12px;}
 .install-banner.open{display:flex;}
 .install-banner .install-icon{font-size:20px;flex-shrink:0;}
 .install-banner .install-text{flex:1;line-height:1.4;}
@@ -203,6 +203,28 @@ nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;po
 .install-banner .install-hint{font-size:11px;color:#7a6420;}
 .install-banner .install-close{background:none;border:none;font-size:20px;color:#7a6420;cursor:pointer;padding:2px 8px;line-height:1;flex-shrink:0;font-family:inherit;}
 .install-banner .install-close:hover{color:#3a3008;}
+
+/* スマホ向けレスポンシブ調整 */
+@media (max-width:480px){
+  nav{padding:0 6px;gap:0;}
+  .nav-logo{font-size:13px;padding:10px 4px 10px 0;margin-right:0;}
+  .nav-logo img{width:26px!important;height:26px!important;margin-right:5px!important;}
+  .nav-btn{padding:10px 6px;font-size:10px;gap:2px;}
+  .page{padding:14px 12px 100px;}
+  .install-banner{padding:8px 10px;gap:8px;}
+  .install-banner .install-icon{font-size:18px;}
+  .install-banner .install-text strong{font-size:12px;}
+  .install-banner .install-hint{font-size:10.5px;}
+  .grid3{gap:7px;}
+  .stat-card{padding:10px 9px;}
+  .stat-card .val{font-size:18px;}
+  .fab-wrap{padding-right:16px;}
+}
+@media (max-width:360px){
+  .nav-logo img{display:none!important;}
+  .nav-logo{font-size:12px;padding-right:2px;}
+  .nav-btn{padding:10px 4px;font-size:9.5px;}
+}
 </style>
 </head>
 <body>
