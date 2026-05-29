@@ -20,8 +20,8 @@
   --r50:#fff0f0;--r400:#e06060;
   --bg:#f7faf2;--w:#fff;--text:#3a4a2a;--muted:#7a9060;--border:rgba(100,140,60,0.18);
 }
-html,body{height:100%;font-family:'Zen Maru Gothic',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
-.app{max-width:640px;margin:0 auto;min-height:100vh;position:relative;background:var(--bg);}
+html,body{height:100%;font-family:'Zen Maru Gothic',sans-serif;background:var(--bg);color:var(--text);font-size:14px;overflow-x:hidden;}
+.app{max-width:640px;margin:0 auto;min-height:100vh;position:relative;background:var(--bg);overflow-x:hidden;}
 
 nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;position:sticky;top:0;z-index:40;box-shadow:0 2px 8px rgba(20,50,8,0.2);}
 .nav-logo{font-size:16px;font-weight:700;color:#fff;padding:12px 8px 12px 0;margin-right:4px;white-space:nowrap;}
@@ -107,6 +107,8 @@ nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;po
 .btn-danger:hover{background:var(--r400);color:#fff;}
 .diary-del-btn{background:none;border:none;color:#ccc;cursor:pointer;font-size:16px;padding:2px 4px;line-height:1;transition:.15s;margin-left:4px;flex-shrink:0;}
 .diary-del-btn:hover{color:var(--r400);}
+.diary-edit-btn{background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;padding:2px 4px;line-height:1;transition:.15s;margin-left:4px;flex-shrink:0;}
+.diary-edit-btn:hover{color:var(--g600);}
 .confirm-bar{background:var(--r50);border:1px solid var(--r400);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;}
 .confirm-bar-text{flex:1;font-size:12px;color:var(--r400);font-weight:500;}
 .confirm-yes{background:var(--r400);color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:600;font-family:'Zen Maru Gothic',sans-serif;cursor:pointer;}
@@ -195,7 +197,7 @@ nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;po
 .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .status-desc{font-size:10px;color:var(--muted);display:block;margin-top:1px;}
 /* ホーム追加おすすめバナー */
-.install-banner{display:none;align-items:center;gap:10px;padding:10px 12px;background:#fff8d5;border-bottom:1px solid #e8d68a;color:#5a4a10;font-size:12px;position:sticky;top:0;z-index:50;}
+.install-banner{display:none;align-items:center;gap:10px;padding:10px 12px;background:#fff8d5;border-bottom:1px solid #e8d68a;color:#5a4a10;font-size:12px;}
 .install-banner.open{display:flex;}
 .install-banner .install-icon{font-size:20px;flex-shrink:0;}
 .install-banner .install-text{flex:1;line-height:1.4;}
@@ -203,6 +205,28 @@ nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;po
 .install-banner .install-hint{font-size:11px;color:#7a6420;}
 .install-banner .install-close{background:none;border:none;font-size:20px;color:#7a6420;cursor:pointer;padding:2px 8px;line-height:1;flex-shrink:0;font-family:inherit;}
 .install-banner .install-close:hover{color:#3a3008;}
+
+/* スマホ向けレスポンシブ調整 */
+@media (max-width:480px){
+  nav{padding:0 6px;gap:0;}
+  .nav-logo{font-size:13px;padding:10px 4px 10px 0;margin-right:0;}
+  .nav-logo img{width:26px!important;height:26px!important;margin-right:5px!important;}
+  .nav-btn{padding:10px 6px;font-size:10px;gap:2px;}
+  .page{padding:14px 12px 100px;}
+  .install-banner{padding:8px 10px;gap:8px;}
+  .install-banner .install-icon{font-size:18px;}
+  .install-banner .install-text strong{font-size:12px;}
+  .install-banner .install-hint{font-size:10.5px;}
+  .grid3{gap:7px;}
+  .stat-card{padding:10px 9px;}
+  .stat-card .val{font-size:18px;}
+  .fab-wrap{padding-right:16px;}
+}
+@media (max-width:360px){
+  .nav-logo img{display:none!important;}
+  .nav-logo{font-size:12px;padding-right:2px;}
+  .nav-btn{padding:10px 4px;font-size:9.5px;}
+}
 </style>
 </head>
 <body>
@@ -316,7 +340,7 @@ nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;po
           <div class="karte-section-title">&#128221; 栽培メモ</div>
           <div class="karte-memo" id="kv-memo"></div>
         </div>
-        <button class="btn-submit" style="margin-top:4px;" onclick="openKarteEdit()">&#9998; カルテを編集</button>
+        <button class="btn-submit" style="margin-top:4px;" onclick="openKarteEdit()">&#9998; 植物を編集</button>
 
         <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
           <div id="plant-delete-confirm" style="display:none;" class="confirm-bar">
@@ -349,7 +373,7 @@ nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;po
 <!-- モーダル: 日記追加 -->
 <div class="modal-bg" id="modal-diary">
   <div class="modal">
-    <div class="modal-title">記録を追加<button class="modal-close" onclick="closeModal('diary')">&#215;</button></div>
+    <div class="modal-title"><span id="diary-modal-title">記録を追加</span><button class="modal-close" onclick="closeModal('diary')">&#215;</button></div>
     <div class="form-row">
       <label class="form-label">作業の種類</label>
       <select class="form-select" id="d-type" onchange="onDiaryTypeChange()">
@@ -382,14 +406,18 @@ nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;po
       <label class="form-label">メモ（任意）</label>
       <input class="form-input" placeholder="気づいたことなど" id="d-note">
     </div>
-    <button class="btn-submit" onclick="addDiaryEntry()">&#10003; 記録する</button>
+    <button class="btn-submit" id="diary-submit-btn" onclick="addDiaryEntry()">&#10003; 記録する</button>
   </div>
 </div>
 
-<!-- モーダル: カルテ編集 -->
+<!-- モーダル: 植物編集 -->
 <div class="modal-bg" id="modal-karte">
   <div class="modal">
-    <div class="modal-title">カルテを編集<button class="modal-close" onclick="closeModal('karte')">&#215;</button></div>
+    <div class="modal-title">植物を編集<button class="modal-close" onclick="closeModal('karte')">&#215;</button></div>
+    <div class="form-row"><label class="form-label">植物名・品種</label><input class="form-input" id="k-name" placeholder="例: ミニトマト（アイコ）"></div>
+    <div class="form-row"><label class="form-label">植えた日</label><input class="form-input" type="date" id="k-date"></div>
+    <div class="form-row"><label class="form-label">場所</label><input class="form-input" id="k-place" placeholder="例: プランターA"></div>
+    <div class="form-row"><label class="form-label">絵文字アイコン</label><input class="form-input" id="k-icon" placeholder="&#127813;" style="font-size:18px;"></div>
     <div class="form-row">
       <label class="form-label">水やり頻度</label>
       <select class="form-select" id="k-water">
@@ -505,6 +533,7 @@ let nextPlantId = 1;
 let diaryEntries = [];
 let nextDiaryId = 1;
 let editingPlantId = null;
+let editingDiaryId = null;
 let currentPage = 'dash';
 let fabOpen = false;
 
@@ -564,11 +593,34 @@ function closeModal(id){document.getElementById('modal-'+id).classList.remove('o
 document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 
 function prepDiaryModal(presetPlantId=null){
+  editingDiaryId = null;
+  document.getElementById('diary-modal-title').textContent = '記録を追加';
+  document.getElementById('diary-submit-btn').innerHTML = '&#10003; 記録する';
   const sel=document.getElementById('d-plant');
   sel.innerHTML=plants.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
   if(presetPlantId) sel.value=presetPlantId;
+  document.getElementById('d-type').value = 'water';
   document.getElementById('d-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('d-note').value='';
+  document.getElementById('d-amount').value='';
+  document.getElementById('d-count').value='';
   onDiaryTypeChange();
+}
+function openDiaryEdit(diaryId){
+  const e = diaryEntries.find(x=>x.id===diaryId);
+  if(!e) return;
+  prepDiaryModal();
+  editingDiaryId = diaryId;
+  document.getElementById('diary-modal-title').textContent = '記録を編集';
+  document.getElementById('diary-submit-btn').innerHTML = '&#10003; 保存する';
+  document.getElementById('d-type').value = e.type;
+  document.getElementById('d-plant').value = e.plantId;
+  document.getElementById('d-date').value = e.date;
+  document.getElementById('d-note').value = e.note || '';
+  document.getElementById('d-amount').value = e.amount || '';
+  document.getElementById('d-count').value = e.count || '';
+  onDiaryTypeChange();
+  document.getElementById('modal-diary').classList.add('open');
 }
 function openDiaryModalForCurrent(){
   prepDiaryModal(editingPlantId);
@@ -736,6 +788,10 @@ function renderKarte(p){
 function openKarteEdit(){
   const p=plants.find(x=>x.id===editingPlantId);
   if(!p) return;
+  document.getElementById('k-name').value = p.name||'';
+  document.getElementById('k-date').value = p.date||'';
+  document.getElementById('k-place').value = p.place||'';
+  document.getElementById('k-icon').value = p.icon||'';
   document.getElementById('k-water').value = p.waterEveryDays||2;
   document.getElementById('k-tips').value = p.tips||'';
   document.getElementById('k-soil').value = p.soil||'';
@@ -747,6 +803,10 @@ function openKarteEdit(){
 function saveKarte(){
   const p=plants.find(x=>x.id===editingPlantId);
   if(!p) return;
+  p.name = (document.getElementById('k-name').value||'').trim() || p.name;
+  p.date = document.getElementById('k-date').value || p.date;
+  p.place = document.getElementById('k-place').value || p.place;
+  p.icon = (document.getElementById('k-icon').value||'').trim() || p.icon;
   p.waterEveryDays = +document.getElementById('k-water').value||2;
   p.tips = document.getElementById('k-tips').value;
   p.soil = document.getElementById('k-soil').value;
@@ -754,8 +814,9 @@ function saveKarte(){
   p.memo = document.getElementById('k-memo').value;
   saveState();
   closeModal('karte');
-  renderKarte(p);
-  renderCheckList();
+  renderPlants();
+  renderDash();
+  openDetail(editingPlantId);
 }
 function closeDetail(){document.getElementById('detail-page').classList.remove('open');}
 function detailBgClick(e){if(e.target===document.getElementById('detail-page'))closeDetail();}
@@ -774,6 +835,9 @@ function renderDetailDiary(plantId){
 function diaryEntryHTML(e, showDel=false){
   const m=TYPE_META[e.type]||TYPE_META.other;
   const p=plants.find(x=>x.id===e.plantId);
+  const editBtn = showDel
+    ? `<button class="diary-edit-btn" onclick="openDiaryEdit(${e.id})" title="編集">&#9998;</button>`
+    : '';
   const delBtn = showDel
     ? `<button class="diary-del-btn" onclick="askDeleteDiary(${e.id})" title="削除">&#10005;</button>`
     : '';
@@ -783,6 +847,7 @@ function diaryEntryHTML(e, showDel=false){
       <div class="diary-header">
         <span class="diary-type-label ${m.typeCls}">${m.icon} ${m.label}</span>
         <span class="diary-date">${fmtDate(e.date)}</span>
+        ${editBtn}
         ${delBtn}
       </div>
       <div class="diary-plant-name">${p?p.icon+' '+p.name:'—'}</div>
@@ -812,7 +877,13 @@ function addDiaryEntry(){
   const note=document.getElementById('d-note').value;
   const amount=document.getElementById('d-amount').value;
   const count=parseFloat(document.getElementById('d-count').value)||0;
-  diaryEntries.push({id:nextDiaryId++,type,plantId,date,note,amount,count});
+  if(editingDiaryId){
+    const e = diaryEntries.find(x=>x.id===editingDiaryId);
+    if(e){ e.type=type; e.plantId=plantId; e.date=date; e.note=note; e.amount=amount; e.count=count; }
+    editingDiaryId = null;
+  } else {
+    diaryEntries.push({id:nextDiaryId++,type,plantId,date,note,amount,count});
+  }
   saveState();
   closeModal('diary');
   ['d-note','d-amount','d-count'].forEach(id=>document.getElementById(id).value='');
