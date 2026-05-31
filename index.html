@@ -391,12 +391,12 @@ nav{background:#2d5810;display:flex;align-items:center;padding:0 12px;gap:2px;po
       <select class="form-select" id="d-plant"></select>
     </div>
     <div class="form-row" id="d-amount-row" style="display:none;">
-      <label class="form-label">収穫量（例: 8個、2本）</label>
-      <input class="form-input" placeholder="例: 8個" id="d-amount">
+      <label class="form-label">収穫量（例: 8個、2本、500g）</label>
+      <input class="form-input" placeholder="例: 8個" id="d-amount" oninput="onAmountInput()">
+      <div class="form-hint" id="d-count-hint" style="font-size:11px;color:var(--muted);margin-top:4px;display:none;">グラフ用の数値: <strong id="d-count-display">0</strong></div>
     </div>
     <div class="form-row" id="d-count-row" style="display:none;">
-      <label class="form-label">収穫数（グラフ用・数値）</label>
-      <input class="form-input" type="number" min="0" placeholder="0" id="d-count">
+      <input class="form-input" type="number" min="0" placeholder="0" id="d-count" style="display:none;">
     </div>
     <div class="form-row">
       <label class="form-label">日付</label>
@@ -630,7 +630,22 @@ function onDiaryTypeChange(){
   const t=document.getElementById('d-type').value;
   const show=t==='harvest';
   document.getElementById('d-amount-row').style.display=show?'block':'none';
-  document.getElementById('d-count-row').style.display=show?'block':'none';
+  document.getElementById('d-count-row').style.display='none';
+  if(show) onAmountInput();
+}
+function onAmountInput(){
+  const v = document.getElementById('d-amount').value || '';
+  const m = v.match(/(\d+(?:\.\d+)?)/);
+  const n = m ? m[1] : '';
+  document.getElementById('d-count').value = n;
+  const hint = document.getElementById('d-count-hint');
+  const disp = document.getElementById('d-count-display');
+  if(n){
+    hint.style.display = 'block';
+    disp.textContent = n;
+  } else {
+    hint.style.display = 'none';
+  }
 }
 
 // ===================== 自動チェックリスト =====================
