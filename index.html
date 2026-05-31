@@ -1191,7 +1191,11 @@ function renderGreeting(){
   const el = document.getElementById('user-greeting');
   if(!el) return;
   if(userName){
-    el.innerHTML = `<span class="uname">${escapeHtml(userName)}</span>さんの畑へようこそ&#127807;<button class="edit-name" onclick="openRename()">名前を変更</button>`;
+    const notifyOn = localStorage.getItem('notify-enabled')==='1' && (typeof Notification!=='undefined' && Notification.permission==='granted');
+    const notifyLabel = notifyOn ? '&#128276; 通知 ON' : '&#128277; 通知 OFF';
+    el.innerHTML = `<span class="uname">${escapeHtml(userName)}</span>さんの畑へようこそ&#127807;`
+      + `<button class="edit-name" onclick="openRename()">名前を変更</button>`
+      + `<button class="edit-name" onclick="toggleWaterNotify()">${notifyLabel}</button>`;
   }else{
     el.innerHTML = '';
   }
@@ -1263,6 +1267,71 @@ renderFabMenu();
 renderGreeting();
 showWelcomeIfNeeded();
 maybeShowInstallBanner();
+checkAndNotifyWatering();
+
+
+// ===================== 水やり通知 =====================
+function computeOverdueWaterPlants(){
+  const today = new Date().toISOString().slice(0,10);
+  const active = plants.filter(p => p.status === 'growing' || p.status === 'soon');
+  return active.filter(p => {
+    const waters = diaryEntries
+      .filter(e => e.plantId === p.id && e.type === 'water')
+      .sort((a,b)=>b.date.localeCompare(a.date)||(b.id-a.id));
+    const last = waters[0]?.date;
+    const days = last ? Math.floor((new Date(today) - new Date(last)) / 86400000) : 999;
+    return days >= (p.waterEveryDays || 2);
+  });
+}
+async function toggleWaterNotify(){
+  if(typeof Notification === 'undefined'){
+    alert('このブラウザは通知に対応していません');
+    return;
+  }
+  const enabled = localStorage.getItem('notify-enabled')==='1' && Notification.permission==='granted';
+  if(enabled){
+    localStorage.setItem('notify-enabled','0');
+    renderGreeting();
+    return;
+  }
+  let perm = Notification.permission;
+  if(perm === 'default'){
+    try{ perm = await Notification.requestPermission(); }catch(e){ perm = 'denied'; }
+  }
+  if(perm !== 'granted'){
+    alert('通知が許可されていません。ブラウザ設定から許可してください。');
+    renderGreeting();
+    return;
+  }
+  localStorage.setItem('notify-enabled','1');
+  renderGreeting();
+  checkAndNotifyWatering(true);
+}
+function checkAndNotifyWatering(force){
+  try{
+    if(typeof Notification === 'undefined') return;
+    if(localStorage.getItem('notify-enabled') !== '1') return;
+    if(Notification.permission !== 'granted') return;
+    if(!force){
+      const last = +(localStorage.getItem('notify-last-shown') || 0);
+      if(Date.now() - last < 6*60*60*1000) return;
+    }
+    const overdue = computeOverdueWaterPlants();
+    if(overdue.length === 0){
+      if(force) new Notification('やさいノート', {body:'今日水やりが必要な植物はありません &#127807;', icon:'icon.svg', tag:'water-reminder'});
+      return;
+    }
+    const sample = overdue.slice(0,3).map(p => `${p.icon} ${p.name}`).join('、');
+    const more = overdue.length > 3 ? ` 他${overdue.length-3}件` : '';
+    new Notification('水やりのタイミングです', {
+      body: sample + more,
+      icon: 'icon.svg',
+      tag: 'water-reminder',
+      renotify: true,
+    });
+    localStorage.setItem('notify-last-shown', String(Date.now()));
+  }catch(e){}
+}
 
 // ===================== Service Worker 登録 =====================
 if('serviceWorker' in navigator){
