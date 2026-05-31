@@ -640,7 +640,7 @@ function renderCheckList(){
 
   // 各植物の「最終水やり日」と「今日記録があるか」を算出
   const checks = activePlants.map(p => {
-    const waterLogs = diaryEntries.filter(e => e.plantId === p.id && e.type === 'water').sort((a,b)=>b.date.localeCompare(a.date));
+    const waterLogs = diaryEntries.filter(e => e.plantId === p.id && e.type === 'water').sort((a,b)=>b.date.localeCompare(a.date)||(b.id-a.id));
     const lastWater = waterLogs[0]?.date || null;
     const daysSinceWater = lastWater ? Math.floor((new Date(today) - new Date(lastWater)) / 86400000) : 999;
     const hasRecordToday = diaryEntries.some(e => e.plantId === p.id && e.date === today);
@@ -825,7 +825,7 @@ function setStatus(s){
   if(p){p.status=s;saveState();renderPlants();openDetail(editingPlantId);}
 }
 function renderDetailDiary(plantId){
-  const entries=[...diaryEntries].filter(e=>e.plantId===plantId).sort((a,b)=>b.date.localeCompare(a.date));
+  const entries=[...diaryEntries].filter(e=>e.plantId===plantId).sort((a,b)=>b.date.localeCompare(a.date)||(b.id-a.id));
   document.getElementById('detail-diary').innerHTML=entries.length
     ?entries.map(e=>diaryEntryHTML(e, true)).join('')
     :'<div style="color:var(--muted);font-size:12px;">まだ記録がありません</div>';
@@ -858,13 +858,13 @@ function diaryEntryHTML(e, showDel=false){
 }
 
 function renderDiary(){
-  const sorted=[...diaryEntries].sort((a,b)=>b.date.localeCompare(a.date));
+  const sorted=[...diaryEntries].sort((a,b)=>b.date.localeCompare(a.date)||(b.id-a.id));
   document.getElementById('diary-list').innerHTML=sorted.map(e=>diaryEntryHTML(e, true)).join('');
 }
 
 function renderDash(){
   renderCheckList();
-  const recent=[...diaryEntries].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4);
+  const recent=[...diaryEntries].sort((a,b)=>b.date.localeCompare(a.date)||(b.id-a.id)).slice(0,4);
   document.getElementById('dash-diary-list').innerHTML=
     `<div class="diary-wrap">${recent.map(e=>diaryEntryHTML(e, false)).join('')}</div>`;
   updateStats();
